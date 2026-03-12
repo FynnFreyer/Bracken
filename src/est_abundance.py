@@ -114,22 +114,30 @@ def process_kmer_distribution(curr_str, lvl_taxids, map2lvl_taxids):
     return [mapped_taxid, temp_dict]
 
 
-def get_ranks(kraken_file):
+def process_report_file(kraken_file):
     file = open(kraken_file, 'r')
-    ranks = []
+    data = []
     for line in file.readlines():
-        ranks.append(line.split("\t")[3][0])
+        name, taxid, level_num, level_type, all_reads, level_reads = process_kraken_report(line)
+        record = {
+            "name": name,
+            "taxid": taxid,
+            "level_num": level_num,
+            "level_type": level_type,
+            "all_reads": all_reads,
+            "level_reads": level_reads,
+        }
+        data.append(record)
     file.close()
-    return ranks
+    return data
 
 
 def estimate_rank(kraken_file):
     """Helper function to determine the most specific estimation level available in a kraken file."""
-    foundranks = get_ranks(kraken_file)
-    ranks = ["S","G","F","O","C","P","K","D"]  # order matters
-    for i in ranks:
-        if i in foundranks:
-            return i
+    data = process_report_file(kraken_file)
+    if data:
+        most_specific = max(data, key=lambda record: record["level_num"])
+        return most_specific["level_type"]
     return None
 
 
