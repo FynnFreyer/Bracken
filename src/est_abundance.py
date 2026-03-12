@@ -113,6 +113,26 @@ def process_kmer_distribution(curr_str, lvl_taxids, map2lvl_taxids):
     #Return dictionary 
     return [mapped_taxid, temp_dict]
 
+
+def get_ranks(kraken_file):
+    file = open(kraken_file, 'r')
+    ranks = []
+    for line in file.readlines():
+        ranks.append(line.split("\t")[3][0])
+    file.close()
+    return ranks
+
+
+def estimate_rank(kraken_file):
+    """Helper function to determine the most specific estimation level available in a kraken file."""
+    foundranks = get_ranks(kraken_file)
+    ranks = ["S","G","F","O","C","P","K","D"]  # order matters
+    for i in ranks:
+        if i in foundranks:
+            return i
+    return None
+
+
 #process_kraken_report
 #usage: parses a single line in the kraken report and extracts relevant information
 #input: kraken report file with the following tab delimited lines 
@@ -216,8 +236,13 @@ def main():
         help='Threshold for the minimum number of reads kraken must assign\
         to a classification for that classification to be considered in the\
         final abundance estimation.') 
+    parser.add_argument('-e', '--estimate', action='store_true', 
+        help='Automatically detect the level to push all reads to. Overrides any passed --level.')
     args=parser.parse_args()
-    
+
+    if args.estimate:
+        args.level = estimate_rank(args.in_file)
+
     #Start program 
     time = strftime("%m-%d-%Y %H:%M:%S", gmtime())
     sys.stdout.write("PROGRAM START TIME: " + time + '\n')
