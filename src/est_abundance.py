@@ -250,7 +250,9 @@ def main():
     args=parser.parse_args()
 
     if args.estimate:
-        args.level = estimate_rank(args.in_file, args.thresh)
+        estimated_rank = estimate_rank(args.in_file, args.thresh)
+        if estimated_rank is not None:
+            args.level = estimated_rank
 
     #Start program 
     time = strftime("%m-%d-%Y %H:%M:%S", gmtime())
