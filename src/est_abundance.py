@@ -132,11 +132,12 @@ def process_report_file(kraken_file):
     return data
 
 
-def estimate_rank(kraken_file):
+def estimate_rank(kraken_file, thresh):
     """Helper function to determine the most specific estimation level available in a kraken file."""
     data = process_report_file(kraken_file)
-    if data:
-        most_specific = max(data, key=lambda record: record["level_num"])
+    relevant_records = [d for d in data if d["all_reads"] >= thresh]
+    if relevant_records:
+        most_specific = max(relevant_records, key=lambda record: record["level_num"])
         return most_specific["level_type"]
     return None
 
@@ -249,7 +250,7 @@ def main():
     args=parser.parse_args()
 
     if args.estimate:
-        args.level = estimate_rank(args.in_file)
+        args.level = estimate_rank(args.in_file, args.thresh)
 
     #Start program 
     time = strftime("%m-%d-%Y %H:%M:%S", gmtime())
